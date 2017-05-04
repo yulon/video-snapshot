@@ -4,21 +4,21 @@ chrome.tabs.captureVisibleTab({ format: "png" }, function(dataUrl) {
 
 	chrome.runtime.onMessage.addListener(function(rects) {
 		function mk() {
-			function cav(w, h) {
+			function vc(rect) {
 				var cav = document.createElement("canvas");
-				cav.setAttribute("width", w);
-				cav.setAttribute("height", h);
+				cav.setAttribute("width", rect.width);
+				cav.setAttribute("height", rect.height);
 				cav.style.width = "400px";
-				cav.style.height = h / (w / 400) + "px";
+				cav.style.height = rect.height / (rect.width / 400) + "px";
+				cav.getContext("2d").drawImage(img, -rect.left, -rect.top);
 				document.body.appendChild(cav);
-				return cav.getContext("2d");
 			}
 			for (var i = 0; i < rects.length; i++) {
-				cav(rects[i].width, rects[i].height).drawImage(img, -rects[i].left, -rects[i].top);
+				vc(rects[i]);
 			}
-			window.onclick = function(mouseEvent){
+			window.onclick = function(mouseEvent) {
 				if (mouseEvent.target.tagName === "CANVAS") {
-					window.open(mouseEvent.target.toDataURL('image/png'));
+					chrome.downloads.download({ url: mouseEvent.target.toDataURL('image/png'), saveAs: true, filename: "chrome_video_capture_" + (new Date()).getTime() + ".png" });
 				}
 			};
 		}
