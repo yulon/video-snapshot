@@ -29,6 +29,6 @@ chrome.tabs.captureVisibleTab({ format: "png" }, function(dataUrl) {
 				window.addEventListener("load", mk, false);
 			}
 		});
-		chrome.tabs.executeScript({ file: "rects.js", allFrames: true });
+		chrome.tabs.executeScript({ file: "rects.js" });
 	})
 })
