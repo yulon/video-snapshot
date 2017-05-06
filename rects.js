@@ -1,19 +1,59 @@
-var sels = {
-	"dilidili.": ".player_main"
+var confs = {
+	"youtube.com": {
+		barSel: '.ytp-player-content.ytp-iv-player-content, .ytp-chrome-bottom, .ytp-button.ytp-cards-button, ytp-cards-teaser, #iv-drawer',
+		parent: 2
+	},
+	"twitter.com": {
+		barSel: '.all-controls.player-controls.bg-play-pause.visible-controls, .poster-image-container, .duration-badge.duration-badge-without-view-counts',
+		parent: 3,
+		stAttr: "display",
+		stVal: "none"
+	},
+	"dilidili.": {
+		videoSel: ".player_main"
+	},
+	"bilibili.com": {
+		barSel: '.bilibili-player-video-state',
+		parent: 2
+	},
+	"iqiyi.com": {
+		videoSel: 'video',
+		barSel: '[data-cupid="container"]'
+	},
+	"weibo.com": {
+		barSel: '.con-3, .con-4.hv-pos.hv-center',
+		parent: 3
+	}
 }
-var sel;
 
-for (var i in sels) {
+var conf;
+
+for (var i in confs) {
 	if (window.location.host.search(i) !== -1) {
-		sel = sels[i];
+		conf = confs[i];
 		break;
 	}
 }
-if (!sel) {
-	sel = 'video, object, embed';
+
+if (!conf) {
+	conf = { videoSel: 'video, object, embed' };
+} else {
+	if (!("videoSel" in conf)) {
+		conf.videoSel = 'video, object, embed';
+	}
+	if ("barSel" in conf) {
+		if (!("stAttr" in conf)) {
+			conf.stAttr = "visibility";
+			conf.stVal = "hidden";
+		}
+		if (!("parent" in conf)) {
+			conf.parent = 1;
+		}
+	}
 }
 
 var rects = new Array();
+var bars = new Array();
 
 function cpyPos(src) {
 	if (src) {
@@ -37,7 +77,7 @@ function cpyPos(src) {
 				fPos.top += fRect.top + wnd.frames[i].frameElement.clientTop;
 			}
 
-			arguments.callee(wnd.frames[i], fPos, sel);
+			arguments.callee(wnd.frames[i], fPos, conf.videoSel);
 		}
 	} catch (e) {
 		console.error("[Video Capture]", e);
@@ -45,10 +85,10 @@ function cpyPos(src) {
 
 	////////////////////////////////////////////////////////////////////////////
 
-	var ves = wnd.document.querySelectorAll(sel);
+	var videoEles = wnd.document.querySelectorAll(conf.videoSel);
 
-	for (var i = 0; i < ves.length; i++) {
-		var nRect = ves[i].getBoundingClientRect();
+	for (var i = 0; i < videoEles.length; i++) {
+		var nRect = videoEles[i].getBoundingClientRect();
 		var rect = { left: nRect.left, top: nRect.top, width: nRect.width, height: nRect.height };
 
 		if (basePos) {
@@ -63,8 +103,28 @@ function cpyPos(src) {
 			rect.top + rect.height > 0
 		) {
 			rects.push(rect);
+
+			if ("barSel" in conf) {
+				var parentEles = videoEles[i];
+				for (var j = 0; j < conf.parent; j++) {
+					parentEles = parentEles.parentElement;
+				}
+
+				var barEles = parentEles.querySelectorAll(conf.barSel);
+				for (var j = 0; j < barEles.length; j++) {
+					if (barEles[j].style[conf.stAttr] !== conf.stVal) {
+						var bar = { ele: barEles[j], oldStyle: barEles[j].style[conf.stAttr] };
+						barEles[j].style[conf.stAttr] = conf.stVal;
+						bars.push(bar);
+					}
+				}
+			}
 		}
 	}
 })(window, null);
 
-chrome.runtime.sendMessage(null, rects);
+chrome.runtime.sendMessage(null, rects, null, function() {
+	for (var i = 0; i < bars.length; i++) {
+		bars[i].ele.style[conf.stAttr] = bars[i].oldStyle;
+	}
+});
