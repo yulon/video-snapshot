@@ -26,18 +26,18 @@ function cpyPos(src) {
 (function(wnd, basePos) {
 	try {
 		for (var i = 0; i < wnd.frames.length; i++) {
-			var fBasePos = cpyPos(basePos);
+			var fPos = cpyPos(basePos);
 
 			if (wnd.frames[i].frameElement) {
 				var fRect = wnd.frames[i].frameElement.getBoundingClientRect();
-				if (!fBasePos) {
-					fBasePos = { left: 0, top: 0 };
+				if (!fPos) {
+					fPos = { left: 0, top: 0 };
 				}
-				fBasePos.left += fRect.left + wnd.frames[i].frameElement.clientLeft;
-				fBasePos.top += fRect.top + wnd.frames[i].frameElement.clientTop;
+				fPos.left += fRect.left + wnd.frames[i].frameElement.clientLeft;
+				fPos.top += fRect.top + wnd.frames[i].frameElement.clientTop;
 			}
 
-			arguments.callee(wnd.frames[i], fBasePos, sel);
+			arguments.callee(wnd.frames[i], fPos, sel);
 		}
 	} catch (e) {
 		console.error("[Video Capture]", e);
