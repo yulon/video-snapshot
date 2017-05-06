@@ -1,6 +1,6 @@
 {
 	"name": "Video Capture",
-	"version": "0.1.00",
+	"version": "0.1.15",
 	"manifest_version": 2,
 	"icons": {
 		"16": "16.png",
