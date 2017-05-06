@@ -12,7 +12,6 @@ chrome.runtime.onMessage.addListener(function(rects, sder, resp) {
 						var cav = document.createElement("canvas");
 						cav.setAttribute("width", rect.width * zoomFactor);
 						cav.setAttribute("height", rect.height * zoomFactor);
-						cav.style.width = "400px";
 						cav.style.height = rect.height / (rect.width / 400) + "px";
 						cav.getContext("2d").drawImage(img, -rect.left * zoomFactor, -rect.top * zoomFactor);
 						document.body.appendChild(cav);
@@ -34,6 +33,10 @@ chrome.runtime.onMessage.addListener(function(rects, sder, resp) {
 			})
 		})
 		return true;
+	} else {
+		var p = document.createElement("p");
+		p.innerText = "The video elements was not found in the visible area.";
+		document.body.appendChild(p);
 	}
 });
 
