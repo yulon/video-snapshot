@@ -1,6 +1,6 @@
 var confs = {
 	"youtube.com": {
-		barSel: '.ytp-player-content.ytp-iv-player-content, .ytp-chrome-bottom, .ytp-button.ytp-cards-button, ytp-cards-teaser, #iv-drawer',
+		barSel: '.ytp-player-content.ytp-iv-player-content, .ytp-chrome-bottom, .ytp-gradient-bottom, .ytp-button.ytp-cards-button, ytp-cards-teaser, #iv-drawer',
 		parent: 2
 	},
 	"twitter.com": {
