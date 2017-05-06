@@ -40,7 +40,7 @@ function cpyPos(src) {
 			getRects(wnd.frames[i], fBasePos, sel);
 		}
 	} catch (e) {
-
+		console.error("[Video Capture]", e);
 	}
 
 	////////////////////////////////////////////////////////////////////////////
