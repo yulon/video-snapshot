@@ -23,7 +23,7 @@ function cpyPos(src) {
 	}
 }
 
-(function getRects(wnd, basePos) {
+(function(wnd, basePos) {
 	try {
 		for (var i = 0; i < wnd.frames.length; i++) {
 			var fBasePos = cpyPos(basePos);
@@ -37,7 +37,7 @@ function cpyPos(src) {
 				fBasePos.top += fRect.top + wnd.frames[i].frameElement.clientTop;
 			}
 
-			getRects(wnd.frames[i], fBasePos, sel);
+			arguments.callee(wnd.frames[i], fBasePos, sel);
 		}
 	} catch (e) {
 		console.error("[Video Capture]", e);
