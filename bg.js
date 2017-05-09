@@ -2,40 +2,64 @@ var notFound = document.createElement("p");
 notFound.innerText = "The video elements was not found in the visible area.";
 
 function capture(popup) {
-	crxCS.insert(null, { file: "rects.js" }, function() {
-		crxCS.callA(null, "get", function(rects) {
-			if (rects.length) {
-				chrome.tabs.captureVisibleTab({ format: "png" }, function(dataUrl) {
-					var img = new Image();
-					img.src = dataUrl;
+	function callOnLoad(func) {
+		popup.addEventListener("load", func);
+		if (popup.document.readyState === "complete") {
+			func();
+		}
+	}
 
-					chrome.tabs.getZoom(function(zoomFactor) {
-						popup.onload = function() {
-							function vc(rect) {
-								var cav = popup.document.createElement("canvas");
-								cav.setAttribute("width", rect.width * zoomFactor);
-								cav.setAttribute("height", rect.height * zoomFactor);
-								cav.style.height = rect.height / (rect.width / 400) + "px";
-								cav.getContext("2d").drawImage(img, -rect.left * zoomFactor, -rect.top * zoomFactor);
-								popup.document.body.appendChild(cav);
-							}
-							for (var i = 0; i < rects.length; i++) {
-								vc(rects[i]);
-							}
-							popup.onclick = function(mouseEvent) {
-								if (mouseEvent.target.tagName === "CANVAS") {
-									chrome.downloads.download({ url: mouseEvent.target.toDataURL('image/png'), saveAs: true, filename: "chrome_video_capture_" + (new Date()).getTime() + ".png" });
-								}
-							};
-							popup.onunload = function(mouseEvent) {
-								crxCS.call(null, "rcy");
-							};
-						}
-						if (popup.document.readyState === "complete") {
-							popup.onload();
-						}
-					});
+	crxCS.insert(null, { file: "capture.js" }, function() {
+		crxCS.callA(null, "get", function(result) {
+
+			var scrShot, zm, bufCav, bufCavCtx;
+
+			function mkImgList() {
+				for (var i = 0; i < result.vidShots.length; i++) {
+					var img = new popup.Image();
+					img.onload = function() {
+						this.style.height = this.naturalHeight / (this.naturalWidth / 400) + "px";
+					};
+
+					if (result.vidShots[i].constructor === String) {
+						img.src = result.vidShots[i];
+					} else {
+						bufCav.width = result.vidShots[i].width * zm;
+						bufCav.height = result.vidShots[i].height * zm;
+						bufCavCtx.drawImage(scrShot, -result.vidShots[i].left * zm, -result.vidShots[i].top * zm);
+						img.src = bufCav.toDataURL('image/png');
+					}
+
+					popup.document.body.appendChild(img);
+				}
+				popup.onclick = function(mouseEvent) {
+					if (mouseEvent.target.tagName === "IMG") {
+						chrome.downloads.download({ url: mouseEvent.target.src, saveAs: true, filename: "chrome_video_capture_" + (new Date()).getTime() + ".png" });
+					}
+				};
+				popup.onunload = function(mouseEvent) {
+					crxCS.callA(null, "rcy");
+				};
+			}
+
+			if (result.needScrShot) {
+				bufCav = popup.document.createElement("canvas");
+				bufCavCtx = bufCav.getContext("2d");
+
+				chrome.tabs.captureVisibleTab({ format: "png" }, function(dataUrl) {
+					scrShot = new Image();
+					scrShot.onload = function() {
+						chrome.tabs.getZoom(function(zoomFactor) {
+							zm = zoomFactor;
+							callOnLoad(function() {
+								mkImgList(zoomFactor);
+							});
+						});
+					};
+					scrShot.src = dataUrl;
 				});
+			} else if (result.vidShots.length) {
+				callOnLoad(mkImgList);
 			} else {
 				popup.document.body.appendChild(notFound);
 			}

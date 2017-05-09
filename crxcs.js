@@ -67,9 +67,13 @@ var crxCS = new (function CrxCS() {
 	};
 
 	function call(type, tab, funcName, resultCb) {
-		chrome.tabs.query({ active: true }, function(tabs) {
-			chrome.tabs.sendMessage(tabs[0].id, { type: type, funcName: funcName}, resultCb);
-		});
+		if (tab == null) {
+			chrome.tabs.query({ active: true }, function(tabs) {
+				chrome.tabs.sendMessage(tabs[0].id, { type: type, funcName: funcName}, resultCb);
+			});
+		} else {
+			chrome.tabs.sendMessage(tab, { type: type, funcName: funcName}, resultCb);
+		}
 	};
 
 	this.call = function(tab, funcName, resultCb) {
