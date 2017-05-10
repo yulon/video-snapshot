@@ -1,7 +1,15 @@
 var confs = {
+	"facebook.com": {
+		ptrSel: 'img.img'
+	},
 	"twitter.com": {
+		vidSel: 'video, iframe[src*="youtube.com"]',
 		ptrSel: '.poster-image',
 		vidFrame: 3
+	},
+	"bilibili.com": {
+		uiSel: '.bilibili-player-video-state',
+		vidFrame: 2
 	},
 	"dilidili.": {
 		vidSel: ".player_main"
@@ -108,72 +116,85 @@ function get(cb) {
 				rect.top + rect.height > 0
 			) {
 				if (vidElmts[i].tagName === "VIDEO") {
-					try {
-						var imgUrl;
+					var imgUrl;
 
-						if (!bufCav) {
-							bufCav = wnd.document.createElement("canvas");
-							bufCavCtx = bufCav.getContext("2d");
-						}
-						vidElmts[i].crossOrigin = "anonymous";
-						bufCav.width = vidElmts[i].videoWidth;
-						bufCav.height = vidElmts[i].videoHeight;
-						bufCavCtx.drawImage(vidElmts[i], 0, 0);
-						imgUrl = bufCav.toDataURL('image/png');
+					if (vidElmts[i].currentTime === 0) {
+						if ("ptrSel" in conf) {
+							var vidFrameElmts = vidElmts[i];
+							for (var j = 0; j < conf.vidFrame; j++) {
+								vidFrameElmts = vidFrameElmts.parentElement;
+							}
 
-						if (imgUrl === "data:,") {
-							if ("ptrSel" in conf) {
-								var vidFrameElmts = vidElmts[i];
-								for (var j = 0; j < conf.vidFrame; j++) {
-									vidFrameElmts = vidFrameElmts.parentElement;
-								}
-
-								ptrElmt = vidFrameElmts.querySelector(conf.ptrSel);
+							ptrElmt = vidFrameElmts.querySelector(conf.ptrSel);
+							if (ptrElmt.style.backgroundImage) {
+								imgUrl = ptrElmt.style.backgroundImage.match(/\s*url\s*\(\"*\'*(.*?)\"*\'*\)\s*/)[1];
+							} else {
 								switch (ptrElmt.tagName) {
 									case "IMG":
 										imgUrl = ptrElmt.src;
 										break;
 									case "CANVAS":
 										imgUrl = ptrElmt.toDataURL('image/png');
-										break;
-									default:
-										imgUrl = ptrElmt.style.backgroundImage.match(/\s*url\s*\(\"*\'*(.*?)\"*\'*\)\s*/)[1];
 								}
-								if (imgUrl !== "data:,") {
-									result.vidShots.push(imgUrl);
-								}
-							} else if (vidElmts[i].poster) {
-								result.vidShots.push(vidElmts[i].poster);
 							}
-						} else {
-							result.vidShots.push(imgUrl);
+
+							if (imgUrl) {
+								result.vidShots.push(imgUrl);
+								continue;
+							}
+
+						} else if (vidElmts[i].poster) {
+							result.vidShots.push(vidElmts[i].poster);
+							continue;
 						}
-						continue;
-					} catch (e) {
-						console.error("[Video Capture] (capturing video element)", e);
+					}
 
-						if ("uiSel" in conf) {
-							var vidFrameElmts = vidElmts[i];
-							for (var j = 0; j < conf.vidFrame; j++) {
-								vidFrameElmts = vidFrameElmts.parentElement;
-							}
+					function unblob(src) {
+						if (src.slice(0, 5) === "blob:") {
+							return src.slice(5, -1);
+						}
+						return src;
+					}
 
-							var uiElmts = vidFrameElmts.querySelectorAll(conf.uiSel);
-							for (var j = 0; j < uiElmts.length; j++) {
-								if (uiElmts[j].style[conf.stAttr] !== conf.stVal) {
-									var ui = { ele: uiElmts[j], oldStyle: uiElmts[j].style[conf.stAttr] };
-									uiElmts[j].style[conf.stAttr] = conf.stVal;
-									uis.push(ui);
-								}
-							}
+					if (vidElmts[i].src && (new URL(unblob(vidElmts[i].src))).host === wnd.location.host) {
+						if (!bufCav) {
+							bufCav = wnd.document.createElement("canvas");
+							bufCavCtx = bufCav.getContext("2d");
+						}
+
+						bufCav.width = vidElmts[i].videoWidth;
+						bufCav.height = vidElmts[i].videoHeight;
+						bufCavCtx.drawImage(vidElmts[i], 0, 0);
+						imgUrl = bufCav.toDataURL('image/png');
+
+						if (imgUrl !== "data:,") {
+							result.vidShots.push(imgUrl);
+							continue;
+						}
+					}
+				}
+
+				if (!result.needScrShot) {
+					result.needScrShot = true;
+				}
+
+				if ("uiSel" in conf) {
+					var vidFrameElmts = vidElmts[i];
+					for (var j = 0; j < conf.vidFrame; j++) {
+						vidFrameElmts = vidFrameElmts.parentElement;
+					}
+
+					var uiElmts = vidFrameElmts.querySelectorAll(conf.uiSel);
+					for (var j = 0; j < uiElmts.length; j++) {
+						if (uiElmts[j].style[conf.stAttr] !== conf.stVal) {
+							var ui = { ele: uiElmts[j], oldStyle: uiElmts[j].style[conf.stAttr] };
+							uiElmts[j].style[conf.stAttr] = conf.stVal;
+							uis.push(ui);
 						}
 					}
 				}
 
 				result.vidShots.push(rect);
-				if (!result.needScrShot) {
-					result.needScrShot = true;
-				}
 			}
 		}
 	})(window, null);
