@@ -98,11 +98,11 @@ function get(cb) {
 
 		var vidElmts = wnd.document.querySelectorAll(conf.vidSel);
 
-		var bufCav, bufCavCtx, bufVid;
+		var bufCav, bufCavCtx;
 
 		for (var i = 0; i < vidElmts.length; i++) {
 			var nRect = vidElmts[i].getBoundingClientRect();
-			var rect = { left: nRect.left, top: nRect.top, width: nRect.width, height: nRect.height };
+			var rect = { left: Math.round(nRect.left), top: Math.round(nRect.top), width: Math.round(nRect.width), height: Math.round(nRect.height) };
 
 			if (basePos) {
 				rect.left += basePos.left;
