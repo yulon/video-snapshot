@@ -1,6 +1,6 @@
 {
 	"name": "Video Snapshot/Screenshot Capture",
-	"version": "0.4.20",
+	"version": "0.4.21",
 	"manifest_version": 2,
 	"description": "Capture current frame image of video elements.",
 	"icons": {
