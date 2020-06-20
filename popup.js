@@ -1,3 +1,3 @@
-chrome.runtime.getBackgroundPage(function(bg) {
+browser.runtime.getBackgroundPage(function(bg) {
 	bg.capture(window);
 });

@@ -74,7 +74,7 @@ function get(cb) {
 		}
 	}
 
-	(function(wnd, basePos) {
+	(function (wnd, basePos) {
 		try {
 			for (var i = 0; i < wnd.frames.length; i++) {
 				var fPos = cpyPos(basePos);
@@ -91,7 +91,7 @@ function get(cb) {
 				arguments.callee(wnd.frames[i], fPos, conf.vidSel);
 			}
 		} catch (e) {
-			console.error("[Video Capture] (traversing iframes)", e);
+			console.warn("[Video Snapshot] (traversing iframes)", e);
 		}
 
 		////////////////////////////////////////////////////////////////////////////
@@ -200,7 +200,7 @@ function get(cb) {
 	})(window, null);
 
 	if (uis.length) {
-		requestAnimationFrame(function() {
+		requestAnimationFrame(function () {
 			cb(result);
 		});
 	} else {

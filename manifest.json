@@ -1,8 +1,8 @@
 {
-	"name": "Video Snapshot/Screenshot Capture",
-	"version": "0.4.21",
+	"name": "Video Snapshot",
+	"version": "0.5.22",
 	"manifest_version": 2,
-	"description": "Capture current frame image of video elements.",
+	"description": "Capture a snapshot of video.",
 	"icons": {
 		"16": "16.png",
 		"48": "48.png",
@@ -10,11 +10,13 @@
 	},
 	"permissions": [
 		"activeTab",
-		"downloads",
-		"<all_urls>"
+		"downloads"
 	],
 	"background": {
-		"scripts": ["crxcs.js", "bg.js"]
+		"scripts": [
+			"bext.js",
+			"bg.js"
+		]
 	},
 	"browser_action": {
 		"default_icon": "128.png",
