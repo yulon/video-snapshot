@@ -1,19 +1,23 @@
 {
 	"name": "Video Snapshot",
-	"version": "0.6.23",
-	"manifest_version": 2,
+	"version": "0.6.24",
+	"manifest_version": 3,
 	"description": "Capture a snapshot of video.",
 	"icons": {
 		"16": "16.png",
 		"48": "48.png",
 		"128": "128.png"
 	},
-	"browser_action": {
+	"action": {
 		"default_icon": "128.png",
 		"default_popup": "popup.html"
 	},
 	"permissions": [
-		"activeTab"
+		"scripting",
+		"activeTab",
+		"tabs"
 	],
-	"content_security_policy": "script-src 'self'; object-src 'self'; img-src 'self' http: https: data:; frame-src 'self' http: https:"
+	"content_security_policy": {
+		"extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' http: https: data:"
+	}
 }

@@ -97,11 +97,7 @@ function Bext(isListen, isV3) {
 
 	function tInsertV2(tabId, file, injectImmediately, allFrames) {
 		return new Promise((resolve, reject) => {
-			browser.tabs.executeScript(tabId, {
-				file: file,
-				runAt: injectImmediately ? 'document_start' : 'document_idle',
-				allFrames: allFrames
-			}, (r) => {
+			const inserted = (r) => {
 				if (!r) {
 					reject(browser.runtime.lastError)
 					return
@@ -124,7 +120,22 @@ function Bext(isListen, isV3) {
 					}
 					resolve(false)
 				})
-			})
+			}
+
+			if (file.endsWith('.css')) {
+				browser.tabs.insertCSS(tabId, {
+					file: file,
+					runAt: injectImmediately ? 'document_start' : 'document_idle',
+					allFrames: allFrames
+				}, inserted)
+				return
+			}
+
+			browser.tabs.executeScript(tabId, {
+				file: file,
+				runAt: injectImmediately ? 'document_start' : 'document_idle',
+				allFrames: allFrames
+			}, inserted)
 		})
 	}
 
@@ -178,19 +189,27 @@ function Bext(isListen, isV3) {
 	}
 
 	function tInsertV3(tabId, file, injectImmediately, allFrames) {
-		return browser.scripting.executeScript({
-			target: { tabId: tabId },
-			files: [file],
-			injectImmediately: injectImmediately,
-			allFrames: allFrames
-		}).then(() => {
+		const inserted = () => {
 			return browser.scripting.executeScript({
 				target: { tabId: tabId },
 				func: tIsInsertedV3,
 				args: [file],
 				injectImmediately: true
 			})
-		})
+		}
+
+		if (file.endsWith('.css')) {
+			return browser.scripting.insertCSS({
+				target: { tabId: tabId, allFrames: allFrames },
+				files: [file]
+			}).then(inserted)
+		}
+
+		return browser.scripting.executeScript({
+			target: { tabId: tabId, allFrames: allFrames },
+			files: [file],
+			injectImmediately: injectImmediately,
+		}).then(inserted)
 	}
 
 	function tInsertOnceV3(tabId, file, injectImmediately, allFrames) {
@@ -217,8 +236,9 @@ function Bext(isListen, isV3) {
 		})
 	}
 
+	const tInsertOnce = isV3 ? tInsertOnceV3 : tInsertOnceV2
+
 	bext.insertTab = function tInsert(tabId, file, injectImmediately, allFrames) {
-		const tInsertOnce = isV3 ? tInsertOnceV3 : tInsertOnceV2
 		if (tabId === null || tabId === 'active') {
 			return new Promise((cb) => browser.tabs.query({ active: true }, cb)).then((tabs) => {
 				return tInsertOnce(tabs[0].id, file, injectImmediately, allFrames)
@@ -252,7 +272,7 @@ function Bext(isListen, isV3) {
 		}
 	}
 
-	bext.callBackend = function tCall(funcName, args) {
+	bext.callBackend = function (funcName, args) {
 		return rSend(null, { type: 'Call', funcName: funcName, args: args })
 	}
 
@@ -284,7 +304,7 @@ function Bext(isListen, isV3) {
 				return true
 
 			case 'InsertTab':
-				tInsert(msg.tabId, msg.file, msg.injectImmediately).catch(() => null).then(resp)
+				tInsert(msg.tabId, msg.file, msg.injectImmediately, msg.allFrames).catch(() => null).then(resp)
 				return true
 		}
 	})
